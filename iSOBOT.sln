@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "iSOBOT", "iSOBOT\iSOBOT.csproj", "{10C599B2-C93B-4B99-95C0-DA3C4CE33E7A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "iSOBOT_IR", "..\..\..\Arduino\iSOBOT_IR\iSOBOT_IR.vcxproj", "{D92F5D46-4F10-421D-B4EC-FAEF189FCB2E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "iSOBOT_IR", "iSOBOT_IR\iSOBOT_IR.vcxproj", "{D92F5D46-4F10-421D-B4EC-FAEF189FCB2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
