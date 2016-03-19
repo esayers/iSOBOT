@@ -1,8 +1,12 @@
 // Serial protocol definitions
+// FIRST BYTE: 0 - Channel A; 1 - Channel B
+// SECOND BYTE: Command to be executed
+// THIRD BYTE: 0 - Do not repeat; 1 - Repeat
+// FOURTH BYTE: Checksum - XOR of other bytes
 #define SERIAL_BUF_LEN 4
 #define CHANNEL_BYTE 0
 #define COMMAND_BYTE 1
-#define COUNT_BYTE 2
+#define REPEAT_BYTE 2
 #define CHECKSUM_BYTE 3
 
 // Command offsets
@@ -42,38 +46,42 @@ unsigned long count = countin;
 unsigned long buf = 0;
 
 typedef struct serialCommand {		// Structure to store the state of a channel
-	byte count;						// Has the channel started?
 	unsigned long command;			// Command to be sent
+	boolean valid;					// Is the current data valid?
+	boolean repeat;					// Should the command be repeated?
 } serialCommand;
 
 byte serialBuf[SERIAL_BUF_LEN];		// Buffer for serial input
 serialCommand isobotState[2];		// Array of state structures, one for each channel
 
-
+// Initial setup of device
 void setup()
 {
 	Serial.begin(38400);
 	pinMode(RXpin, INPUT);
 	pinMode(TXpin, OUTPUT);
-	isobotState[0].count = 0;
-	isobotState[1].count = 0;
+	isobotState[0].valid = false;
+	isobotState[1].valid = false;
 }
+
 
 void loop()
 {
-	if (isobotState[0].count)
+	for (int i = 0; i < 2; ++i)
 	{
-		buttonwrite(TXpin, isobotState[0].command);
-		--(isobotState[0].count);
-	}
+		if (isobotState[i].valid)
+		{
+			buttonwrite(TXpin, isobotState[i].command);
 
-	if (isobotState[1].count)
-	{
-		buttonwrite(TXpin, isobotState[1].command);
-		--(isobotState[1].count);
+			if (isobotState[i].repeat == false)
+			{
+				isobotState[i].valid = false;
+			}
+		}
 	}
 }
 
+// Handler for incoming serial data
 void serialEvent()
 {
 	while (Serial.available())
@@ -81,7 +89,7 @@ void serialEvent()
 		Serial.readBytes(serialBuf, SERIAL_BUF_LEN);
 
 		// Check for valid checksum
-		if (serialBuf[CHANNEL_BYTE] ^ serialBuf[COMMAND_BYTE] ^ serialBuf[COUNT_BYTE] ^ serialBuf[CHECKSUM_BYTE])
+		if (serialBuf[CHANNEL_BYTE] ^ serialBuf[COMMAND_BYTE] ^ serialBuf[REPEAT_BYTE] ^ serialBuf[CHECKSUM_BYTE])
 			continue;
 
 		// Check for valid channel
@@ -90,7 +98,16 @@ void serialEvent()
 			continue;
 
 		unsigned long command = serialBuf[COMMAND_BYTE];	// Command word
-		byte count = serialBuf[COUNT_BYTE];					// Number of times to send command
+		boolean repeat = serialBuf[REPEAT_BYTE] ? true : false;			// Should the command be repeated?
+
+		// Check for stop repeating command
+		if (command == 0x00)
+		{
+			isobotState[channel].repeat = false;
+			isobotState[channel].valid = false;
+			continue;
+		}
+
 
 		// Build command word without checksum
 		command = command << COMMAND_OFFSET;
@@ -108,7 +125,10 @@ void serialEvent()
 
 		// Add checksum to command word
 		isobotState[channel].command = command + ((checksum2 & 0x7) << CHECKSUM_OFFSET);
-		isobotState[channel].count = count;
+
+		// Setup for next execution of main loop
+		isobotState[channel].repeat = repeat;
+		isobotState[channel].valid = true;
 	}
 }
 
