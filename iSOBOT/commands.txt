@@ -1,0 +1,8 @@
+GreetHuman,A,0,0
+GreetHuman,B,0,4000
+GoOut,A,0,0
+GoOut,B,0,4000
+Dance,A,0,0
+Dance,B,0,4000
+
+

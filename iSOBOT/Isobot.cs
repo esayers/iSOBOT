@@ -88,7 +88,10 @@ namespace iSOBOT
     public enum Commands : byte
     {
         StopRepeating = 0x00,
+        GreetHuman = 0x48,
+        Honor = 0x49,
         Dance = 0x97,
+        GoOut = 0xA7,
         WalkForward = 0xb7,
         WalkBack = 0xb8,
         WalkForwardLeft = 0xb9,
