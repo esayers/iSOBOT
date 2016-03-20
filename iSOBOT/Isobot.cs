@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO.Ports;
 
 namespace iSOBOT
@@ -30,13 +26,26 @@ namespace iSOBOT
             SerialConnect();
         }
 
+        // Destructor
+        ~Isobot()
+        {
+            port.Close();
+        }
+
+        // Connect to transmitter via serial port
         public void SerialConnect()
         {
             if (BaudRate != 0 && PortName != "None")
             {
                 port = new SerialPort(PortName, BaudRate);
                 port.DataReceived += new SerialDataReceivedEventHandler(DataReceivedHandler);
-                port.Open();
+                try
+                {
+                    port.Open();
+                }
+                catch
+                { //todo 
+                }
 
                 if (port.IsOpen)
                 {
@@ -52,6 +61,7 @@ namespace iSOBOT
                 Console.WriteLine("Port name or baud rate not set prior to opening connection");
             }
         }
+
 
         public void SendCommand(Commands cmd, Channel chan, bool repeat)
         {
@@ -81,8 +91,12 @@ namespace iSOBOT
         Dance = 0x97,
         WalkForward = 0xb7,
         WalkBack = 0xb8,
+        WalkForwardLeft = 0xb9,
+        WalkForwardRight = 0xb1,
         WalkLeft = 0xbb,
         WalkRight = 0xbc,
+        WalkBackLeft = 0xbd,
+        WalkBackRight = 0xbe,
         GetupBelly = 0xE4,
         GetupBack = 0xE5,
     };

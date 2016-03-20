@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-using System.IO.Ports;
+﻿using System.Threading;
+using System.IO;
+using System;
 
 namespace iSOBOT
 {
@@ -15,17 +10,52 @@ namespace iSOBOT
         {
             Isobot bot = new Isobot(38400, "COM3");
 
-            while (true)
+            StreamReader reader = File.OpenText("commands.txt");
+            string line;
+
+            while ((line = reader.ReadLine()) != null)
             {
-                bot.SendCommand(Commands.WalkForward, Channel.A, true);
-                bot.SendCommand(Commands.GetupBack, Channel.B, false);
-                Thread.Sleep(3000);
-                bot.SendCommand(Commands.StopRepeating, Channel.A, false);
-                Thread.Sleep(10000);
+                Commands cmd;
+                Channel chan;
+                bool repeat;
+                int delay;
+
+                string[] sections = line.Split(',');
+
+                // Check for length
+                if (sections.Length != 4)
+                    continue;
+
+                // Get command
+                if (!Enum.TryParse(sections[0], out cmd))
+                    continue;
+
+                // Get Channel
+                if (!Enum.TryParse(sections[1], out chan))
+                    continue;
+
+                // Get repeat
+                if (sections[2] == "0")
+                    repeat = false;
+                else if (sections[2] == "1")
+                    repeat = true;
+                else
+                    continue;
+
+                // Get delay
+                if (!int.TryParse(sections[3], out delay))
+                    continue;
+
+                bot.SendCommand(cmd, chan, repeat);
+                Thread.Sleep(delay);
+
             }
 
+            bot.SendCommand(Commands.StopRepeating, Channel.A, false);
+            bot.SendCommand(Commands.StopRepeating, Channel.B, false);
 
         }
+
     }
        
 }
